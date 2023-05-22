@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Printer QR code generator for Digitevent Checkin2 app</title>
+</head>
+
+<body>
+    <h1>
+        Printer QR code generator
+        <small> for Digitevent Checkin2 app</small>
+    </h1>
+
+    <div class="row">
+        <section class="column">
+            <h2>Enter name and MAC</h2>
+            <form>
+                <p><label for="printer_name">Printer name</label>
+                    <input type="text" name="printer_name" id="printer_name" placeholder="Printer name" />
+                </p>
+                <p>
+                    <label for="printer_mac">Printer MAC</label>
+                    <input type="text" name="printer_mac" id="printer_mac" placeholder="Printer MAC" />
+                </p>
+                <p>
+                    <button type="button" id="generatebutton">Generate QR code</button>
+                </p>
+                <p>
+                    <span id="errors" style="color: red;"></span>
+                </p>
+            </form>
+            <p>
+                <img id="qrcode" src="" alt="QR code" style="display: none;" />
+                <textarea id="payload" style="display: none;"></textarea>
+            </p>
+            <p> <a id="downloadbutton" download="printer-qr.png" href="" target="_blank" style="display: none;">Download
+                    QR code</a></p>
+        </section>
+        <section class="column">
+            <h2>How to find MAC and name of the Printer?</h2>
+            <img src="img/printer_how_to_find_mac_name.jpg" alt="How to find MAC and name of the Printer?" />
+        </section>
+    </div>
+
+
+
+    <script type="module">
+        console.log('QR code generator for Digitevent Checkin2 app')
+        import qrcode from 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/+esm'
+        console.log('Lib loaded')
+
+        const form = document.querySelector('form')
+
+        document.querySelector('#generatebutton').addEventListener('click', generateQRCode);
+
+        function generateQRCode() {
+            const name = document.querySelector('#printer_name').value.trim()
+            const mac = document.querySelector('#printer_mac').value.trim()
+            if (!name || !mac) {
+                putError('Please fill in both fields');
+                return
+            }
+            if (mac.length !== 12) {
+                putError('MAC should be 12 characters long');
+                return
+            }
+            const macWithColons = mac.match(/.{1,2}/g).join(':')
+            const payload = generatePrinterQRCodePayload({ name, mac: macWithColons })
+            document.querySelector('#payload').innerHTML = payload
+            qrcode.toDataURL(payload, function (err, url) {
+                if (err) {
+                    console.error(err)
+                    putError(err)
+                    return
+                }
+                console.log('QR code generated', url)
+                document.querySelector('#qrcode').style.display = 'block'
+                document.querySelector('#downloadbutton').style.display = 'block'
+                document.querySelector('#qrcode').src = url
+                document.querySelector('#downloadbutton').href = url
+            })
+        }
+
+
+        function putError(message) {
+            document.querySelector('#errors').innerHTML = message
+        }
+
+        function generatePrinterQRCodePayload({ name, mac }) {
+            const payload = {
+                type: "digitevent_checkin2_printer",
+                mac,
+                localName: name,
+                friendlyName: name
+            }
+            return JSON.stringify(payload)
+        }
+    </script>
+    <style>
+        body {
+            max-width: 1000px;
+            margin: 1rem auto;
+            padding: 2rem;
+            font-family: sans-serif;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 1rem;
+        }
+
+        .column {
+            grid-row: 1;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        #payload {
+            word-wrap: break-word;
+        }
+    </style>
+</body>
+
+</html>
