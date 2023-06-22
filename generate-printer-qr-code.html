@@ -26,6 +26,11 @@
                     <input type="text" name="printer_mac" id="printer_mac" placeholder="Printer MAC" />
                 </p>
                 <p>
+                    <label for="printer_friendly_name">Friendly name</label>
+                    <input type="text" name="printer_friendly_name" id="printer_friendly_name"
+                        placeholder="What user will see" />
+                </p>
+                <p>
                     <button type="button" id="generatebutton">Generate QR code</button>
                 </p>
                 <p>
@@ -59,16 +64,29 @@
         function generateQRCode() {
             const name = document.querySelector('#printer_name').value.trim()
             const mac = document.querySelector('#printer_mac').value.trim()
-            if (!name || !mac) {
-                putError('Please fill in both fields');
+            const friendlyName = document.querySelector('#printer_friendly_name').value.trim()
+            if (!name) {
+                putError('Please fill name field');
+                return
+            }
+            if (!mac) {
+                putError('Please fill mac field');
+                return
+            }
+            if (!friendlyName) {
+                putError('Please fill friendly name field');
                 return
             }
             if (mac.length !== 12) {
                 putError('MAC should be 12 characters long');
                 return
             }
+            if (friendlyName.length > 20) {
+                putError('Friendly name should be less than 20 characters');
+                return
+            }
             const macWithColons = mac.match(/.{1,2}/g).join(':')
-            const payload = generatePrinterQRCodePayload({ name, mac: macWithColons })
+            const payload = generatePrinterQRCodePayload({ name, mac: macWithColons, friendlyName })
             document.querySelector('#payload').innerHTML = payload
             qrcode.toDataURL(payload, function (err, url) {
                 if (err) {
@@ -89,12 +107,12 @@
             document.querySelector('#errors').innerHTML = message
         }
 
-        function generatePrinterQRCodePayload({ name, mac }) {
+        function generatePrinterQRCodePayload({ friendlyName, name, mac }) {
             const payload = {
                 type: "digitevent_checkin2_printer",
                 mac,
                 localName: name,
-                friendlyName: name
+                friendlyName
             }
             return JSON.stringify(payload)
         }
