@@ -19,12 +19,14 @@
             <h2>Enter name and MAC</h2>
             <form>
                 <p>
-                    <label for="printer_family">Model family</label>
+                    <label for="printer_family">Model family </label>
                     <select name="printer_family" id="printer_family">
                         <option value="">Select printer model...</option>
-                        <option value="zebra_zd420">Zebra ZD420</option>
+                        <option value="zebra_zd421">Zebra ZD421</option>
                         <option value="zebra_zd230">Zebra ZD230</option>
+                        <option value="zebra_zd420">Zebra ZD420</option>
                     </select>
+                    (<b>Double check</b>)
                 </p>
                 <p>
                     <label for="printer_name">Printer name</label>
@@ -48,7 +50,7 @@
             </form>
             <p>
                 <img id="qrcode" src="" alt="QR code" style="display: none;" />
-                <textarea id="payload" style="display: none;"></textarea>
+                <textarea id="payload"></textarea>
             </p>
             <p> <a id="downloadbutton" download="printer-qr.png" href="" target="_blank" style="display: none;">Download
                     QR code</a></p>
@@ -72,10 +74,10 @@
 
         function generateQRCode() {
             const name = document.querySelector('#printer_name').value.trim()
-            const mac = document.querySelector('#printer_mac').value.trim()
+            const macWithOrWithoutColons = document.querySelector('#printer_mac').value.trim()
             const friendlyName = document.querySelector('#printer_friendly_name').value.trim()
             const family = document.querySelector('#printer_family').value
-            const validFamilies = ['zebra_zd420', 'zebra_zd230']
+            const validFamilies = ['zebra_zd421', 'zebra_zd420', 'zebra_zd230']
             if (!family) {
                 putError('Please select printer model');
                 return
@@ -88,7 +90,7 @@
                 putError('Please fill name field');
                 return
             }
-            if (!mac) {
+            if (!macWithOrWithoutColons) {
                 putError('Please fill mac field');
                 return
             }
@@ -96,6 +98,7 @@
                 putError('Please fill friendly name field');
                 return
             }
+            const mac = macWithOrWithoutColons.replace(/:/g, '')
             if (mac.length !== 12) {
                 putError('MAC should be 12 characters long');
                 return
@@ -118,12 +121,17 @@
                 document.querySelector('#downloadbutton').style.display = 'block'
                 document.querySelector('#qrcode').src = url
                 document.querySelector('#downloadbutton').href = url
+                clearError()
             })
         }
 
 
         function putError(message) {
             document.querySelector('#errors').innerHTML = message
+        }
+
+        function clearError() {
+            document.querySelector('#errors').innerHTML = ""
         }
 
         function generatePrinterQRCodePayload({ friendlyName, name, mac, family }) {
